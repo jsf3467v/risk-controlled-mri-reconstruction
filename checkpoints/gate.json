@@ -1,0 +1,13 @@
+{
+  "epsilon": 0.2,
+  "alpha": 0.1,
+  "acceleration": 4,
+  "minimum": 50,
+  "candidates": 8,
+  "thresholds": {
+    "FLAIR": -Infinity,
+    "T1": 0.052742403000593185,
+    "T2": 0.060374267399311066
+  },
+  "accept_rate": 0.6666666666666666
+}

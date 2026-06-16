@@ -1,3 +1,5 @@
+![CI](https://github.com/jsf3467v/risk-controlled-mri-reconstruction/actions/workflows/ci.yml/badge.svg)
+
 # Risk-Controlled Certification for Accelerated Low-Field MRI Reconstruction
 
 This project focuses on reconstructing accelerated low-field brain MRI scans and, for each slice, determining which reconstructions are reliable. A cost-effective reconstructor processes every slice, while a risk-controlled gate verifies the slices it deems trustworthy, offering a coverage guarantee and flagging others for review. This gate is the main contribution of the project. The study specifically targets the M4Raw low-field dataset, characterized by high noise levels where dependable quality control is crucial.

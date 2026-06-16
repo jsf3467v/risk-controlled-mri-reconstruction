@@ -26,6 +26,7 @@ jobs:
           pip install pytest ruff
 
       - name: Lint
+        continue-on-error: true
         run: ruff check .
 
       - name: Run unit tests

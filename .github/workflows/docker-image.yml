@@ -1,0 +1,67 @@
+# Builds the Docker image and executes it. Runs alongside ci.yml, the native
+# pytest job, without touching it, and confirms the container builds and ships
+# a working test surface. Belongs at .github/workflows/docker-image.yml.
+name: docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build once, load into the local daemon, and cache layers so the torch
+      # install is reused across runs.
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: risk-controlled-mri:cpu
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Tests run inside the image. The copied pytest.ini supplies the same
+      # pythonpath the native CI job uses.
+      - name: Tests in container
+        run: docker run --rm risk-controlled-mri:cpu pytest -q
+
+      # Smoke check needs no data. The __main__ self-test builds a model on
+      # synthetic tensors and confirms forward and scored agree.
+      - name: Smoke reconstructor parity
+        run: docker run --rm risk-controlled-mri:cpu python src/reconstructor.py
+
+  # Publishes the image to GHCR on tagged releases. Off by default. Removing
+  # `if: false` and granting `packages: write` enables it.
+  publish:
+    if: false
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

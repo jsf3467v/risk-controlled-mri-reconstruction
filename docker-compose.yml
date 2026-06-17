@@ -1,0 +1,33 @@
+name: risk-controlled-mri
+
+# One image, three bind mounts. The host folders data/, checkpoints/, and
+# artifacts/ map onto the in-container paths the scripts expect (ROOT = /app).
+x-app: &app
+  build: .
+  image: risk-controlled-mri:cpu
+  shm_size: "2gb"                        # DataLoader workers pass batches via /dev/shm
+  volumes:
+    - ./data:/app/data                  # data_processing.py and the .h5 pool
+    - ./checkpoints:/app/checkpoints     # best.pt and gate.json
+    - ./artifacts:/app/artifacts         # figures and CSV, written to the host
+
+services:
+  app:                                   # device preflight, reports cpu
+    <<: *app
+    command: ["python", "data/data_processing.py"]
+
+  calibrate:                             # fit the gate, writes checkpoints/gate.json
+    <<: *app
+    command: ["python", "evaluation/calibrate.py"]
+
+  eval:                                  # report and recon_panel.png, runs after calibrate
+    <<: *app
+    command: ["python", "evaluation/eval.py"]
+
+  sweep:                                 # risk and escalation frontier plus resampling
+    <<: *app
+    command: ["python", "evaluation/sweep.py"]
+
+  test:                                  # metrics unit tests
+    <<: *app
+    command: ["pytest", "-q"]

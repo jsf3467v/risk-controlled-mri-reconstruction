@@ -1,4 +1,5 @@
 ![CI](https://github.com/jsf3467v/risk-controlled-mri-reconstruction/actions/workflows/ci.yml/badge.svg)
+![docker](https://github.com/jsf3467v/risk-controlled-mri-reconstruction/actions/workflows/docker-image.yml/badge.svg)
 
 # Risk-Controlled Certification for Accelerated Low-Field MRI Reconstruction
 
@@ -96,6 +97,23 @@ python evaluation/sweep.py       # risk and certification frontier
 
 Start with the preflight check first. It performs the complex k-space processing on the active device and indicates pass or fail. This is especially important on Apple silicon, where support for complex FFT has differed across PyTorch versions. On CUDA or CPU, it provides a quick confirmation. The training step is resumable, so if it halts, you can rerun it and it will continue from the latest checkpoint.
 
+## Containerized workflow
+
+The evaluation environment operates within a container to ensure reproducibility. The image encompasses calibration, the evaluation report, the risk sweep, and the test suite, forming the foundation for a demo. M4Raw files and model checkpoints are mounted at runtime instead of being embedded, keeping the image lightweight and portable. 
+
+However, the training runs on the host hardware rather than inside the container. On a Mac, the container cannot access the Metal backend, so it defaults to CPU, which is acceptable for single-pass evaluation but too slow for training. Therefore, training remains on the host. The same image can be built with a CUDA wheel for GPU hosts without modifying the code.
+
+
+```bash
+docker compose build                 # build the image
+docker compose run --rm calibrate    # fit the per-contrast gate
+docker compose run --rm eval         # certification report and panel
+docker compose run --rm sweep        # risk and certification frontier
+docker compose run --rm test         # unit tests
+```
+
+A GitHub Actions workflow rebuilds the image with each push, executes the test suite inside it, and verifies that the reconstructor generates identical images using both its forward and scored paths. The full details about data mounts, the host accelerator note, and the CUDA path are provided in DOCKER.md.
+
 ## Repository layout
 
 ```
@@ -115,11 +133,19 @@ artifacts/
   risk_escalation_frontier.png   acceptance and realized risk across tolerances
   risk_guarantee_resampling.png  certified-set risk across resampled splits
 EDA/EDA.ipynb                        exploratory analysis of the dataset
+Dockerfile                       CPU image for eval, calibrate, sweep, and test
+docker-compose.yml               per-stage services with data and checkpoints mounted
+.dockerignore                    keeps data, checkpoints, and artifacts out of the image
+requirements-dev.txt             test-only dependency, pytest
+DOCKER.md                        container usage and the CUDA path
+.github/workflows/
+  ci.yml                         native test job
+  docker-image.yml               builds and tests the image on each push
 ```
 
 ## Reproducibility
 
-All randomness is seeded where it is generated, with subject-level, disjoint splits, and consistent scoring functions across evaluation scripts, ensuring safe comparison of numbers. All paths are relative, and the code operates on Apple silicon, CUDA, or CPU without modifications. The preflight verifies the complex k-space paths on the active device before a lengthy run.
+All randomness is seeded where it is generated, with subject-level, disjoint splits, and consistent scoring functions across evaluation scripts, ensuring safe comparison of numbers. All paths are relative, and the code operates on Apple silicon, CUDA, or CPU without modifications. The preflight verifies the complex k-space paths on the active device before a lengthy run. The container provides a fixed environment for the evaluation stages, so the reported numbers reproduce on any machine that can run Docker.
 
 ## References
 

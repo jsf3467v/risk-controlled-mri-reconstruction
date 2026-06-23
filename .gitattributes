@@ -1,0 +1,4 @@
+# Exploratory analysis notebooks are documentation, not source.
+# Keep them out of the GitHub language statistics so the Python
+# codebase shows as the primary language.
+*.ipynb linguist-documentation

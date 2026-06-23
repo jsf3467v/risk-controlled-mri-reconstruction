@@ -1,6 +1,4 @@
-[![CI](https://github.com/jsf3467v/risk-controlled-mri-reconstruction/actions/workflows/ci.yml/badge.svg)](https://github.com/jsf3467v/risk-controlled-mri-reconstruction/actions/workflows/ci.yml)
-
-[![docker](https://github.com/jsf3467v/risk-controlled-mri-reconstruction/actions/workflows/docker-image.yml/badge.svg)](https://github.com/jsf3467v/risk-controlled-mri-reconstruction/actions/workflows/docker-image.yml)
+[![CI](https://github.com/jsf3467v/risk-controlled-mri-reconstruction/actions/workflows/ci.yml/badge.svg)](https://github.com/jsf3467v/risk-controlled-mri-reconstruction/actions/workflows/ci.yml)   [![docker](https://github.com/jsf3467v/risk-controlled-mri-reconstruction/actions/workflows/docker-image.yml/badge.svg)](https://github.com/jsf3467v/risk-controlled-mri-reconstruction/actions/workflows/docker-image.yml)
 
 # Risk-Controlled Certification for Accelerated Low-Field MRI Reconstruction
 
